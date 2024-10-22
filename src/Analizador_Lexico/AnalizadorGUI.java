@@ -16,13 +16,13 @@ public class AnalizadorGUI {
         // Crear un JFrame
         JFrame ventana = new JFrame("DATOS");
         ventana.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        ventana.setSize(800, 500);
+        ventana.setSize(900, 600);
 
         String[] columnas = {"Lexema", "Tipo", "Fila", "Columna"};
 
         DefaultTableModel modelo = new DefaultTableModel(columnas, 0);
 
-        String archivoSinProcesar = "C:\\Users\\chris\\Compilador\\src\\Prueba.txt";
+        String archivoSinProcesar = "/home/chris/Documentos/Edgar Trabajos/Compilador/src/Prueba.txt";
         String archivoProcesado = preprocesarArchivo(archivoSinProcesar);
 
         // Solo procesamos si el archivo sin procesar existe y se puede leer
@@ -82,14 +82,14 @@ public class AnalizadorGUI {
             }
 
             // Guardar el resultado en un nuevo archivo
-            BufferedWriter writer = new BufferedWriter(new FileWriter("codigoProcesado.java"));
+            BufferedWriter writer = new BufferedWriter(new FileWriter("codigoProcesado.txt"));
             for (String lineaProcesada : lineasProcesadas) {
                 writer.write(lineaProcesada);
                 writer.newLine();
             }
             writer.close();
 
-            System.out.println("Código preprocesado guardado en 'codigoProcesado.java'");
+            System.out.println("Código preprocesado guardado en 'codigoProcesado.txt'");
             return lineasProcesadas.toString();
 
         } catch (IOException e) {
@@ -142,7 +142,7 @@ public class AnalizadorGUI {
         while (matcher.find()) {
             String match = matcher.group();
             Token.Tipos tipo = determinarTipo(match);
-            System.out.println(match);
+            //System.out.println(match);
 
             // Calcular la posición de la columna
             int columna = matcher.start() - entrada.toString().lastIndexOf('\n', matcher.start() - 1);

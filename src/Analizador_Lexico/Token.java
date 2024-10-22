@@ -32,7 +32,7 @@ public class Token {
         return columna;
     }
 
-    //Enumeracion
+    //Enumeracion -> Expresiones regulares
     enum Tipos{
         PALABRA_RESERVADA("inicio|fin|si|fin|para|mientras|hasta|hacer"),
         DECIMAL("[-+]?(?:[0-9]+\\.[0-9]+|\\.[0-9]+)"), // Números decimales
@@ -46,7 +46,7 @@ public class Token {
         FUNCIÓN_IO("Escribir|Leer|LimpiarPantalla"),
         DELIMITADOR(";"),
         IDENTIFICADOR("[a-zA-Z_][a-zA-Z0-9_]*"),
-        SIMBOLO_ESPECIAL(":=");
+        SIMBOLO_ESPECIAL(":=|\\(|\\)");
 
         public final String patron;
 
