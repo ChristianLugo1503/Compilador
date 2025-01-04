@@ -1,13 +1,66 @@
 package Analizador_Lexico;
 
-public class Token {
-    //Atributos
-    private String valor;
-    private Tipos tipo;
-    private int linea;
-    private int columna;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-    //Constructor
+public class Token {
+    public enum Tipos {
+        PALABRA_RESERVADA_INICIO("(?i)\\binicio\\b"),
+        PALABRA_RESERVADA_FIN("(?i)\\bfin\\b"),
+        PALABRA_RESERVADA_SI("(?i)\\bsi\\b"),
+        PALABRA_RESERVADA_PARA("(?i)\\bpara\\b"),
+        PALABRA_RESERVADA_MIENTRAS("(?i)\\bmientras\\b"),
+        PALABRA_RESERVADA_HASTA("(?i)\\bhasta\\b"),
+        PALABRA_RESERVADA_HACER("(?i)\\bhacer\\b"),
+        DECIMAL("[-+]?(?:[0-9]+\\.[0-9]+|\\.[0-9]+)"),
+        ENTERO("[-+]?[0-9]+"),
+        CADENA("\"[^\"]*\""),
+        BOOLEANO_TRUE_TEXTUAL("verdadero"),
+        BOOLEANO_TRUE_NUMERICO("1"),
+        BOOLEANO_FALSE_TEXTUAL("falso"),
+        BOOLEANO_FALSE_NUMERICO("0"),
+        OPERADOR_ARITMÉTICO_DIVISION("/"),
+        OPERADOR_ARITMETICO_RESTA("-"),
+        OPERADOR_ARITMETICO_SUMA("\\+"),
+        OPERADOR_ARITMETICO_MULTIPLICACION("\\*"),
+        OPERADOR_MAYOR_IGUAL(">="),
+        OPERADOR_MENOR_IGUAL("<="),
+        OPERADOR_DISTINTO("<>"),
+        OPERADOR_MAYOR(">"),
+        OPERADOR_MENOR("<"),
+        OPERADOR_IGUAL("=="),
+        OPERADOR_OR("\\|"),
+        
+        OPERADOR_AND("&&"),
+        DATO_ENTERO("entero"),
+        DATO_DECIMAL("decimal"),
+        DATO_CADENA("cadena"),
+        DATO_BOOLEANO("booleano"),
+        FUNCION_ESCRIBIR("Escribir"),
+        FUNCION_LEER("Leer"),
+        FUNCION_LIMPIAR_PANTALLA("LimpiarPantalla"),
+        DELIMITADOR(";"),
+        IDENTIFICADOR("[a-zA-Z_][a-zA-Z0-9_]*"),
+        SIMBOLO_ESPECIAL("\\(|\\)"),
+        SIMBOLO_ASIGNACION(":=");
+
+        public final String patron;
+
+        Tipos(String patron) {
+            this.patron = patron;
+        }
+
+           	public Matcher matcher(String texto) {
+            Pattern p = Pattern.compile(this.patron);
+            return p.matcher(texto);
+        }
+    }
+
+    private final Tipos tipo;
+    private final String valor;
+    private final int linea;
+    private final int columna;
+
     public Token(Tipos tipo, String valor, int linea, int columna) {
         this.tipo = tipo;
         this.valor = valor;
@@ -15,13 +68,12 @@ public class Token {
         this.columna = columna;
     }
 
-    //Getters
-    public String getValor() {
-        return valor;
-    }
-
     public Tipos getTipo() {
         return tipo;
+    }
+
+    public String getValor() {
+        return valor;
     }
 
     public int getLinea() {
@@ -30,28 +82,5 @@ public class Token {
 
     public int getColumna() {
         return columna;
-    }
-
-    //Enumeracion -> Expresiones regulares
-    enum Tipos{
-        PALABRA_RESERVADA("inicio|fin|si|fin|para|mientras|hasta|hacer"),
-        DECIMAL("[-+]?(?:[0-9]+\\.[0-9]+|\\.[0-9]+)"), // Números decimales
-        ENTERO("[-+]?[0-9]+"),           // Números enteros (positivos y negativos)
-        CADENA("\"[^\"]*\""),            // Cadenas de texto entre comillas
-        BOOLEANO("(true|false)"),        // Valores booleanos
-        OPERADOR_ARITMÉTICO ("[-+*/]"),
-        OPERADOR_RELACIONAL("(==|<>|<=|>=|<|>)"),
-        OPERADOR_LOGICO("(\\|\\||&&)"),
-        TIPO_DE_DATO("entero|decimal|cadena|booleano"),
-        FUNCIÓN_IO("Escribir|Leer|LimpiarPantalla"),
-        DELIMITADOR(";"),
-        IDENTIFICADOR("[a-zA-Z_][a-zA-Z0-9_]*"),
-        SIMBOLO_ESPECIAL(":=|\\(|\\)");
-
-        public final String patron;
-
-        Tipos(String s){
-            this.patron = s;
-        }
     }
 }
