@@ -1,51 +1,36 @@
-package Analizador_Lexico;
+package analizador_Lexico;
 
-import javax.swing.*;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.swing.table.DefaultTableModel;
 
-public class AnalizadorGUI {
-    public static void main(String[] args) {
-        JFrame ventana = new JFrame("DATOS");
-        ventana.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        ventana.setSize(900, 600);
+public class AnalizadorLexico {
+	
+	private List<String> errores = new ArrayList<>();
+	
+	public AnalizadorLexico() {
+	}
+		
+	public List<String> getErrores() {
+		return errores;
+	}
 
-        String[] columnas = {"Lexema", "Tipo", "Fila", "Columna"};
-        DefaultTableModel modelo = new DefaultTableModel(columnas, 0);
+	public void setErrores(List<String> errores) {
+		this.errores = errores;
+	}
 
-        String archivoSinProcesar = "C:\\Users\\laptop\\Documents\\workspace-spring-tool-suite-4-4.23.1.RELEASE\\Compilador2\\src\\Analizador_Lexico\\Prueba.txt";
-                              
-        String archivoProcesado=preprocesarArchivo(archivoSinProcesar);
-        
-        if (archivoProcesado != null) {
-            ArrayList<Token> tokens = lex(archivoProcesado);
-            System.out.println("GUI aqui");
-            for (Token token : tokens) {
-            	
-            	System.out.println("Valor: "+ token.getValor()+" Tipo: "+token.getTipo()+" Linea: "+token.getLinea()+" Columna: "+token.getColumna());
-                modelo.addRow(new Object[]{
-                        token.getValor(),
-                        token.getTipo(),
-                        token.getLinea(),
-                        token.getColumna()
-                });
-            }
-        }
 
-        JTable tabla = new JTable(modelo);
-        JScrollPane panel = new JScrollPane(tabla);
-        ventana.add(panel);
-        ventana.setLocationRelativeTo(null);
-        ventana.setVisible(true);
-    }
 
-    public static String preprocesarArchivo(String rutaArchivo) {
+	public static String preprocesarArchivo(String ruta) {
+		
         try {
-            BufferedReader reader = new BufferedReader(new FileReader(rutaArchivo));
+            BufferedReader reader = new BufferedReader(new FileReader(ruta));
             List<String> lineasCodigo = new ArrayList<>();
             String linea;
 
@@ -78,16 +63,22 @@ public class AnalizadorGUI {
             }
             writer.close();
 
-            System.out.println("documento generado correctamente");
-            return "C:\\Users\\laptop\\Documents\\workspace-spring-tool-suite-4-4.23.1.RELEASE\\Compilador2\\codigoProcesado.txt";
-
+            System.out.println("documento generado correctamente en: \"C:\\\\Users\\\\laptop\\\\Documents\\\\workspace-spring-tool-suite-4-4.23.1.RELEASE\\\\Compilador2\\\\codigoProcesado.txt\"");
+           
+             String rutaLex ="C:\\Users\\laptop\\Documents\\workspace-spring-tool-suite-4-4.23.1.RELEASE\\Compilador2\\codigoProcesado.txt";
+             return rutaLex;
         } catch (IOException e) {
             e.printStackTrace();
+            return "Ha habido un error!!!: "+ e;
         }
-        return null;
+		
+        
+        
     }
     
-    private static ArrayList<Token> lex(String rutaArchivo) {
+    public ArrayList<Token> lex(String ruta) {
+    	
+    	String rutaArchivo=preprocesarArchivo(ruta);
         ArrayList<Token> tokens = new ArrayList<>();
 
         try (BufferedReader reader = new BufferedReader(new FileReader(rutaArchivo))) {
@@ -147,10 +138,15 @@ public class AnalizadorGUI {
                             }
                         }
                     }
-
+                    
                     if (!matchFound) {
                         System.err.println("Error léxico en la línea " + numLinea + ", columna " + (columna + 1) + ": Caracter no reconocido '" + linea.charAt(columna) + "'");
+                       char lexema=linea.charAt(columna);
+                       String columnaStr = String.valueOf(columna);
+                       String lineaStr = String.valueOf(numLinea);
+                       errores.add("Línea: " + lineaStr + ", Columna: " + columnaStr + ", Lexema: " + lexema);
                         columna++; 
+                        
                     }
                 }
             }
@@ -160,5 +156,4 @@ public class AnalizadorGUI {
 
         return tokens;
     }
-
 }

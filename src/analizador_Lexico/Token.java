@@ -1,4 +1,4 @@
-package Analizador_Lexico;
+package analizador_Lexico;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,7 +41,8 @@ public class Token {
         FUNCION_LIMPIAR_PANTALLA("LimpiarPantalla"),
         DELIMITADOR(";"),
         IDENTIFICADOR("[a-zA-Z_][a-zA-Z0-9_]*"),
-        SIMBOLO_ESPECIAL("\\(|\\)"),
+        PARENTESIS_ABIERTO("\\("),
+        PARENTESIS_CERRADO("\\)"),
         SIMBOLO_ASIGNACION(":=");
 
         public final String patron;

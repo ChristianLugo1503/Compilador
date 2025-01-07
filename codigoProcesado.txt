@@ -3,6 +3,10 @@ entero num1 := 10;
 entero num2 := 5;
 decimal resultado := 1.5;
 booleano esMayor;
+@
+@
+@
+holawe
 resultado := num1 + num2;
 si (num1 > num2) entonces
 esMayor := verdadero;
