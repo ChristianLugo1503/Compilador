@@ -11,6 +11,12 @@ public class Parser {
     private int indiceActual = 0; 
     private List<String> errores = new ArrayList<>();
     
+    private ASTNodo raiz;
+    
+    public ASTNodo getRaiz() {
+    	return raiz;
+    }
+    
     public List<Token> getTokens() {
 		return tokens;
 	}
@@ -49,23 +55,19 @@ public class Parser {
     	
     	 
         try {
-            programa(); 
+            raiz = programa(); 
             System.out.println("El análisis sintáctico fue exitoso.");
         } catch (RuntimeException e) {
             System.err.println("Error durante el análisis sintáctico: " + e.getMessage());
         }
     }
-
    
-    private Token obtenerTokenActual() {
-        return tokens.get(indiceActual);
-    }
 	
-	
-    private void programa() {
+    private ASTNodo programa() {
+    	  ASTNodo nodoPrograma = new ASTNodo("Programa");
         if (match(Token.Tipos.PALABRA_RESERVADA_INICIO)) {
             while (!match(Token.Tipos.PALABRA_RESERVADA_FIN) && !finDeTokens()) {
-                sentencia();
+                nodoPrograma.agregarHijo(sentencia());
             }
             if (!match(Token.Tipos.PALABRA_RESERVADA_FIN)) {
             	reportarError("Se esperaba 'fin' al final del programa.");
@@ -75,140 +77,198 @@ public class Parser {
         	reportarError("Se esperaba 'inicio' al inicio del programa.");
             errores.add("Se esperaba 'inicio' al inicio del programa.");
         }
+		return nodoPrograma;
     }
 
-    private void sentencia() {
+    private ASTNodo sentencia() {
         if (esDeclaracion()) {
-            declaracion();
+            return declaracion();
         } else if (esAsignacion()) {
-            asignacion();
+            return asignacion();
         } else if (esCondicional()) {
-            condicional();
+            return condicional();
         } else {
-        	reportarError("Sentencia desconocida en línea " + obtenerTokenActual().getLinea());
-            errores.add("Sentencia desconocida en línea " + obtenerTokenActual().getLinea());
+            reportarError("Sentencia desconocida en línea " + obtenerTokenActual().getLinea());
             avanzar();
+            return null;
         }
     }
 
-	private boolean match(Token.Tipos tipoEsperado) {
+    private ASTNodo condicional() {
+        Token tipoToken = obtenerTokenActual();
+        
+        if (match(Token.Tipos.PALABRA_RESERVADA_SI)) {
+            ASTNodo nodoCondicional = new ASTNodo("Condicional", tipoToken.getValor());
+          
+            if (match(Token.Tipos.PARENTESIS_ABIERTO)) {
+  
+                ASTNodo nodoCondicion = expresion();
+                nodoCondicional.agregarHijo(nodoCondicion);
+
+                if (!match(Token.Tipos.PARENTESIS_CERRADO)) {
+                    reportarError("Se esperaba ')' después de la condición.");
+                }
+            } else {
+                reportarError("Se esperaba '(' después de 'si'.");
+            }
+            
+            if (match(Token.Tipos.PALABRA_RESERVADA_ENTONCES)) {
+                while (!(match(Token.Tipos.PALABRA_RESERVADA_FIN) && 
+                         match(Token.Tipos.PALABRA_RESERVADA_SI)) && 
+                         !finDeTokens()) {
+                    ASTNodo sentencia = sentencia(); 
+                    nodoCondicional.agregarHijo(sentencia);
+                }
+
+                if (!(match(Token.Tipos.PALABRA_RESERVADA_FIN) && 
+                      match(Token.Tipos.PALABRA_RESERVADA_SI))) {
+                    reportarError("Se esperaba 'fin si' para cerrar el condicional.");
+                }
+            } else {
+                reportarError("Se esperaba 'entonces' después de la condición.");
+            }
+            
+            return nodoCondicional; // Devolver el nodo del condicional completo
+        } else {
+            reportarError("Se esperaba 'si' al inicio del condicional.");
+            return null;
+        }
+    }
+
+    
+    private ASTNodo declaracion() {
+    	 Token tipoToken = obtenerTokenActual();
+         if (match(Token.Tipos.DATO_ENTERO) || match(Token.Tipos.DATO_DECIMAL) ||
+             match(Token.Tipos.DATO_CADENA) || match(Token.Tipos.DATO_BOOLEANO)) {
+             ASTNodo nodoDeclaracion = new ASTNodo("Declaracion", tipoToken.getValor());
+             if (match(Token.Tipos.IDENTIFICADOR)) {
+                 Token idToken = obtenerTokenActual(-1); 
+                 ASTNodo nodoIdentificador = new ASTNodo("Identificador", idToken.getValor());
+                 nodoDeclaracion.agregarHijo(nodoIdentificador);
+                 if (match(Token.Tipos.SIMBOLO_ASIGNACION)) {
+                     nodoDeclaracion.agregarHijo(expresion());
+                 }
+                 if (!match(Token.Tipos.DELIMITADOR)) {
+                     reportarError("Se esperaba ';' al final de la declaración.");
+                 }
+             } else {
+                 reportarError("Se esperaba un identificador después del tipo.");
+             }
+             return nodoDeclaracion;
+         }
+         return null;
+    }
+    
+    private ASTNodo asignacion() {
+        if (match(Token.Tipos.IDENTIFICADOR)) {
+            Token idToken = obtenerTokenActual(-1);
+            ASTNodo nodoAsignacion = new ASTNodo("Asignacion");
+            nodoAsignacion.agregarHijo(new ASTNodo("Identificador", idToken.getValor()));
+            if (!match(Token.Tipos.SIMBOLO_ASIGNACION)) {
+                reportarError("Se esperaba ':=' después del identificador.");
+            } else {
+                nodoAsignacion.agregarHijo(expresion());
+                if (!match(Token.Tipos.DELIMITADOR)) {
+                    reportarError("Se esperaba ';' al final de la asignación.");
+                }
+            }
+            return nodoAsignacion;
+        } else {
+            reportarError("Se esperaba un identificador al inicio de la asignación.");
+        }
+        return null;
+    }
+    
+    private ASTNodo expresion() {
+    	  ASTNodo nodoExpresion = termino();
+          while (match(Token.Tipos.OPERADOR_ARITMETICO_SUMA) || match(Token.Tipos.OPERADOR_ARITMETICO_RESTA)) {
+              Token operador = obtenerTokenActual(-1);
+              ASTNodo nodoOperador = new ASTNodo("Operador", operador.getValor());
+              nodoOperador.agregarHijo(nodoExpresion);
+              nodoOperador.agregarHijo(termino());
+              nodoExpresion = nodoOperador;
+          }
+          return nodoExpresion;
+    }
+
+    private ASTNodo termino() {
+        ASTNodo nodoTermino = factor();
+        while (match(Token.Tipos.OPERADOR_ARITMETICO_MULTIPLICACION) ||
+        		match(Token.Tipos.OPERADOR_ARITMETICO_DIVISION)){
+        	Token operador = obtenerTokenActual(-1);
+        	ASTNodo nodoOperador = new ASTNodo("Operador", operador.getValor()); nodoOperador.agregarHijo(nodoTermino);
+        	nodoOperador.agregarHijo(factor()); nodoTermino = nodoOperador; 
+        	} 
+        return nodoTermino;
+    }
+
+    private ASTNodo factor() {
+    	if (match(Token.Tipos.DATO_ENTERO) || match(Token.Tipos.DATO_DECIMAL)) {
+            Token numero = obtenerTokenActual(-1);
+            return new ASTNodo("Literal", numero.getValor());
+        } else if (match(Token.Tipos.IDENTIFICADOR)) {
+            Token identificador = obtenerTokenActual(-1);
+            return new ASTNodo("Identificador", identificador.getValor());
+        } else if (match(Token.Tipos.PARENTESIS_ABIERTO)) {
+            ASTNodo nodoExpresion = expresion();
+            if (!match(Token.Tipos.PARENTESIS_CERRADO)) {
+                reportarError("Se esperaba ')' para cerrar la expresión.");
+            }
+            return nodoExpresion;
+        } else {
+            reportarError("Se esperaba un número, identificador, o una expresión entre paréntesis.");
+            avanzar();
+            return null;
+        }
+    }
+    
+    private boolean match(Token.Tipos tipoEsperado) {
         if (finDeTokens()) return false;
-        if (tokens.get(indiceActual).getTipo() == tipoEsperado) {
-            indiceActual++;
+        if (obtenerTokenActual().getTipo() == tipoEsperado) {
+            avanzar();
             return true;
         }
         return false;
     }
 
+    private Token obtenerTokenActual() {
+        return obtenerTokenActual(0);
+    }
+
+    private Token obtenerTokenActual(int offset) {
+        int indice = indiceActual + offset;
+        if (indice >= 0 && indice < tokens.size()) {
+            return tokens.get(indice);
+        }
+        return null;
+    }
+
+    private void avanzar() {
+        if (!finDeTokens()) {
+            indiceActual++;
+        }
+    }
+
     private boolean finDeTokens() {
         return indiceActual >= tokens.size();
     }
-    
-    private void declaracion() {
-        if (match(Token.Tipos.DATO_ENTERO) || match(Token.Tipos.DATO_DECIMAL) ||
-            match(Token.Tipos.DATO_CADENA) || match(Token.Tipos.DATO_BOOLEANO)) {
-            if (!match(Token.Tipos.IDENTIFICADOR)) {
-                reportarError("Se esperaba un identificador después del tipo.");
-            } else if (match(Token.Tipos.SIMBOLO_ASIGNACION)) { 
-                expresion();
-            }
-            if (!match(Token.Tipos.DELIMITADOR)) {
-                reportarError("Se esperaba ';' al final de la declaración.");
-            }
-        }
-    }
-    
-    private void expresion() {
-        termino();
-        while (match(Token.Tipos.OPERADOR_ARITMETICO_SUMA) || 
-               match(Token.Tipos.OPERADOR_ARITMETICO_RESTA)) {
-            termino();
-        }
+
+    private void reportarError(String mensaje) {
+        errores.add(mensaje);
+        System.err.println(mensaje);
     }
 
-    private void termino() {
-        factor();
-        while (match(Token.Tipos.OPERADOR_ARITMETICO_MULTIPLICACION) || 
-               match(Token.Tipos.OPERADOR_ARITMÉTICO_DIVISION)) {
-            factor();
-        }
-    }
-
-    private void factor() {
-        if (match(Token.Tipos.ENTERO) || match(Token.Tipos.DECIMAL) ||
-            match(Token.Tipos.CADENA) || match(Token.Tipos.IDENTIFICADOR)) {
-            return; 
-        } else {
-            reportarError("Se esperaba un valor o identificador en línea " + obtenerTokenActual().getLinea());
-            avanzar(); 
-        }
-    }
     private boolean esDeclaracion() {
-        return matchSinAvanzar(Token.Tipos.DATO_ENTERO) ||
-               matchSinAvanzar(Token.Tipos.DATO_DECIMAL) ||
-               matchSinAvanzar(Token.Tipos.DATO_CADENA) ||
-               matchSinAvanzar(Token.Tipos.DATO_BOOLEANO);
+        return match(Token.Tipos.DATO_ENTERO) || match(Token.Tipos.DATO_DECIMAL) ||
+               match(Token.Tipos.DATO_CADENA) || match(Token.Tipos.DATO_BOOLEANO);
     }
 
     private boolean esAsignacion() {
-        return matchSinAvanzar(Token.Tipos.IDENTIFICADOR);
+        return obtenerTokenActual() != null && obtenerTokenActual().getTipo() == Token.Tipos.IDENTIFICADOR &&
+               tokens.get(indiceActual + 1).getTipo() == Token.Tipos.SIMBOLO_ASIGNACION;
     }
 
     private boolean esCondicional() {
-        return matchSinAvanzar(Token.Tipos.PALABRA_RESERVADA_SI);
-    }
-    private boolean matchSinAvanzar(Token.Tipos tipoEsperado) {
-        if (finDeTokens()) return false;
-        return tokens.get(indiceActual).getTipo() == tipoEsperado;
-    }
-    
-    private void asignacion() {
-        if (match(Token.Tipos.IDENTIFICADOR)) {
-            if (!match(Token.Tipos.SIMBOLO_ASIGNACION)) {
-                reportarError("Se esperaba ':=' después del identificador.");
-            } else {
-                expresion();
-                if (!match(Token.Tipos.DELIMITADOR)) {
-                    reportarError("Se esperaba ';' al final de la asignación.");
-                }
-            }
-        } else {
-            reportarError("Se esperaba un identificador al inicio de la asignación.");
-        }
-    }
-    
-    private void condicional() {
-        if (match(Token.Tipos.PALABRA_RESERVADA_SI)) {
-            if (!match(Token.Tipos.PARENTESIS_ABIERTO)) {
-                errores.add("Se esperaba '(' después de 'si'.");
-            } else {
-                expresion();
-                if (!match(Token.Tipos.PARENTESIS_CERRADO)) {
-                    errores.add("Se esperaba ')' después de la condición.");
-                } else {
-                    sentencia();
-                }
-            }
-        } else {
-            errores.add("Condicional mal formado.");
-        }
-    }
-    
-    private void avanzar() {
-        if (!finDeTokens()) {
-            indiceActual++; 
-        } else {
-            
-            System.out.println("Se alcanzó el final de los tokens.");
-        }
-    }
-    
-    private void reportarError(String mensaje) {
-        if(!finDeTokens()){
-            errores.add(mensaje + " Token actual: " + obtenerTokenActual().getValor() + " Linea: " + obtenerTokenActual().getLinea() + " Columna: " + obtenerTokenActual().getColumna());
-        }else{
-            errores.add(mensaje + " Fin de archivo");
-        }
-        throw new RuntimeException("Error sintáctico");
+        return obtenerTokenActual() != null && obtenerTokenActual().getTipo() == Token.Tipos.PALABRA_RESERVADA_SI;
     }
 }

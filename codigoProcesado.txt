@@ -3,9 +3,6 @@ entero num1 := 10;
 entero num2 := 5;
 decimal resultado := 1.5;
 booleano esMayor;
-@
-@
-@
 holawe
 resultado := num1 + num2;
 si (num1 > num2) entonces
@@ -18,6 +15,6 @@ mientras (num1 > 0) hacer
 num1 := num1 - 1;
 fin
 LimpiarPantalla();
-Escribir("Resultado: ", resultado);
+Escribir("Resultado: " + resultado);
 Leer(num2);
 fin

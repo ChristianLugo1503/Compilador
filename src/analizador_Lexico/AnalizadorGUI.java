@@ -2,11 +2,9 @@ package analizador_Lexico;
 
 import javax.swing.*;
 
-import java.io.*;
+import sintaxis.Parser;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
 import javax.swing.table.DefaultTableModel;
 
 public class AnalizadorGUI {
@@ -21,7 +19,8 @@ public class AnalizadorGUI {
         String archivoSinProcesar = "C:\\Users\\laptop\\Documents\\workspace-spring-tool-suite-4-4.23.1.RELEASE\\Compilador2\\src\\Analizador_Lexico\\Prueba.txt";
               AnalizadorLexico lexico = new AnalizadorLexico();                
         
-        
+        Parser parse = new Parser();
+        parse.analizar();
         
             ArrayList<Token> tokens = lexico.lex(archivoSinProcesar);
             System.out.println("GUI aqui");

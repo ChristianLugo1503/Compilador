@@ -4,9 +4,7 @@ inicio
     decimal resultado := 1.5;
     booleano esMayor;
 
-	@
-	@
-	@
+
 	holawe
     resultado := num1 + num2;
 
@@ -27,7 +25,7 @@ inicio
 
 
     LimpiarPantalla();
-    Escribir("Resultado: ", resultado);
+    Escribir("Resultado: " + resultado);
     Leer(num2);
 fin
 
