@@ -3,6 +3,7 @@ package sintaxis;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class ASTNodo {
 	 private String tipo; 
 	    private String valor;
@@ -52,4 +53,5 @@ public class ASTNodo {
 	        }
 	        return sb.toString();
 	    }
+	    
 }

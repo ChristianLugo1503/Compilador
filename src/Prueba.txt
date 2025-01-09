@@ -1,0 +1,31 @@
+inicio
+    entero num1 := 10;
+    entero num2 := 5;
+    decimal resultado := 1.5;
+    booleano esMayor;
+
+
+
+    resultado := num1 + num2;
+
+
+    si (num1 > num2) entonces
+        esMayor := verdadero;
+    fin si
+
+
+    para i := 1 hasta 5 hacer
+        resultado := resultado * i;
+    fin para
+
+
+    mientras (num1 > 0) hacer
+        num1 := num1 - 1;
+    fin mientras
+
+
+    LimpiarPantalla();
+    Escribir("Resultado: " + resultado);
+    Leer(num2);
+fin
+
